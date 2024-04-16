@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Install any needed packages specified in requirements.txt
-RUN pip install  flask transformers torch  google-cloud-storage --progress-bar off
+RUN pip install  Flask requests google-cloud-storage gunicorn --progress-bar off
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
