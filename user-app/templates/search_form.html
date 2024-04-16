@@ -1,0 +1,64 @@
+<!-- templates/search_form.html -->
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Search Queries</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        form { max-width: 600px; margin: 0 auto; }
+        .keyword { display: inline-block; margin: 5px; padding: 2px; background: #e1e1e1; border-radius: 5px; }
+        label, button { display: block; margin-bottom: 10px; }
+        input[type="text"], button { width: 100%; padding: 10px; }
+        .message { color: #888; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Search Query Input</h1>
+    <p>Enter a keyword to search for related articles.</p>
+    <form id="queryForm" method="post" action="{{ url_for('add_keyword') }}">
+        <label for="keyword">Keyword:</label>
+        <input type="text" id="keyword" name="keyword" placeholder="e.g., devops">
+        <button type="submit">Add</button>
+    </form>
+    <div id="queryList">Keywords:
+        {% for keyword in keywords %}
+            <div class="keyword">{{ keyword }}
+                <form method="post" action="{{ url_for('delete_keyword', keyword=keyword|urlencode) }}">
+                    <button type="submit">Delete</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" id="createPipelineButton" onclick="createPipeline()">Create the Pipeline</button>
+
+    <script>
+        function createPipeline() {
+            fetch('/trigger_pipeline', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            }).then(response => {
+                if (response.ok) {
+                    if (response.status === 204) {
+                        alert("Workflow triggered successfully.");
+                    } else {
+                        return response.json();  // Only try to parse JSON if status is not 204
+                    }
+                } else {
+                    throw new Error(`HTTP status ${response.status}`);
+                }
+            })
+            .then(data => {
+                if (data && data.status === "error") {
+                    alert("Error: " + data.message + "\nDetails: " + data.details);
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert("Failed to trigger the pipeline: " + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
