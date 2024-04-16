@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: user-app
-        image: europe-west3-docker.pkg.dev/${{ secrets.PROJECT_ID }}/maamoun/userapp:latest  # Replace with your actual Docker image path
+        image: europe-west3-docker.pkg.dev/int-infra-training-gcp/maamoun/userapp:latest  # Replace with your actual Docker image path
         ports:
         - containerPort: 5000  # The port your app runs on
         env:
