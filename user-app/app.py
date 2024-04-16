@@ -8,8 +8,8 @@ from google.cloud import storage
 
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")
-token = os.getenv("GITHUB_TOKEN")
+app.secret_key = "github-secret-key"
+token = "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"
 
 # Usage example:
 bucket_name = 'my-bucket-int-infra-training-gcp'
