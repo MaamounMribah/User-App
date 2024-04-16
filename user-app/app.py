@@ -71,7 +71,7 @@ def trigger_pipeline():
 
     headers = {
         "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json",
+        "Accept": "application/vnd.github.v3+json",
         
     }
     # URL for GitHub API to dispatch a workflow
