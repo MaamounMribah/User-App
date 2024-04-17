@@ -9,7 +9,7 @@ from google.cloud import storage
 
 app = Flask(__name__)
 app.secret_key = 'github-secret-key3'
-token = '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'
+token = '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'
 
 
 
