@@ -8,8 +8,11 @@ from google.cloud import storage
 
 
 app = Flask(__name__)
-app.secret_key = "github-secret-key"
-token = "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"
+app.secret_key = 'github-secret-key3'
+token = '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'
+
+
+
 
 # Usage example:
 bucket_name = 'my-bucket-int-infra-training-gcp'
@@ -67,11 +70,11 @@ def trigger_pipeline():
     with open('keywords.json', 'w') as f:
         json.dump(keywords, f)
     
-    upload_to_gcs(storage_client,bucket_name, source_file_name, destination_blob_name)
+    #upload_to_gcs(storage_client,bucket_name, source_file_name, destination_blob_name)
 
     headers = {
         "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github.v3+json",
+        "Accept": "application/vnd.github.v3.json",
         
     }
     # URL for GitHub API to dispatch a workflow
