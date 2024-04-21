@@ -92,7 +92,7 @@ def trigger_pipeline():
     }
 
     response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
+    if response.status_code == 200 or response.status_code == 204:
         return jsonify(status="success", message="Workflow triggered successfully.")
     else:
         error_details = response.text
