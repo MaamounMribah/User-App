@@ -21,10 +21,6 @@ spec:
         volumeMounts:
           - name: pv-storage
             mountPath: /mnt/gcs  
-      volumes:
-      - name: pv-storage
-        persistentVolumeClaim:
-          claimName: bert-fine-tuning-pipeline-mvlnn-mypvc
         env:
           - name: SECRET_KEY
             valueFrom:
@@ -36,4 +32,8 @@ spec:
               secretKeyRef:
                 name: my-secrets
                 key: GITHUB_TOKEN
+      volumes:
+      - name: pv-storage
+        persistentVolumeClaim:
+          claimName: bert-fine-tuning-pipeline-mvlnn-mypvc
       # Optional: Add other environment setup here, like database connections
