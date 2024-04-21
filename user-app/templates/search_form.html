@@ -1,64 +1,147 @@
-<!-- templates/search_form.html -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Search Queries</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        form { max-width: 600px; margin: 0 auto; }
-        .keyword { display: inline-block; margin: 5px; padding: 2px; background: #e1e1e1; border-radius: 5px; }
-        label, button { display: block; margin-bottom: 10px; }
-        input[type="text"], button { width: 100%; padding: 10px; }
-        .message { color: #888; margin-top: 20px; }
-    </style>
+    <meta charset="UTF-8">
+    <title>Keyword Selection</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"> <!-- Bootstrap Icons -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </head>
 <body>
-    <h1>Search Query Input</h1>
-    <p>Enter a keyword to search for related articles.</p>
-    <form id="queryForm" method="post" action="{{ url_for('add_keyword') }}">
-        <label for="keyword">Keyword:</label>
-        <input type="text" id="keyword" name="keyword" placeholder="e.g., devops">
-        <button type="submit">Add</button>
-    </form>
-    <div id="queryList">Keywords:
-        {% for keyword in keywords %}
-            <div class="keyword">{{ keyword }}
-                <form method="post" action="{{ url_for('delete_keyword', keyword=keyword|urlencode) }}">
-                    <button type="submit">Delete</button>
-                </form>
+<div class="container mt-5">
+    <h2>Keyword Selection for Data Collection</h2>
+    <form method="post" action="/add_keyword"> <!-- Ensure form has action -->
+        <div class="input-group mb-3">
+            <input type="text" name="keyword" class="form-control" placeholder="Add a keyword" required>
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">+ Add Keyword</button>
             </div>
-        {% endfor %}
-    </div>
-    <button type="button" id="createPipelineButton" onclick="createPipeline()">Create the Pipeline</button>
+        </div>
+    </form>
 
-    <script>
-        function createPipeline() {
-            fetch('/trigger_pipeline', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
-            }).then(response => {
-                if (response.ok) {
-                    if (response.status === 204) {
-                        alert("Workflow triggered successfully.");
-                    } else {
-                        return response.json();  // Only try to parse JSON if status is not 204
-                    }
-                } else {
-                    throw new Error(`HTTP status ${response.status}`);
-                }
-            })
-            .then(data => {
-                if (data && data.status === "error") {
-                    alert("Error: " + data.message + "\nDetails: " + data.details);
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                alert("Failed to trigger the pipeline: " + error.message);
-            });
+    <h4>Keywords:</h4>
+    <ul class="list-group">
+        {% for keyword in keywords %}
+            <li class="list-group-item d-flex justify-content-between align-items-center" id="keyword-{{ loop.index0 }}">
+                <span class="keyword-text">{{ keyword }}</span>
+                <input type="text" class="form-control keyword-edit" value="{{ keyword }}" style="display: none;">
+                <div>
+                    <button class="btn btn-info btn-edit" data-index="{{ loop.index0 }}">
+                        <i class="bi bi-pencil"></i> Edit <!-- Add Icon -->
+                    </button>
+                    <button class="btn btn-success btn-save" data-index="{{ loop.index0 }}" style="display: none;">
+                        <i class="bi bi-save"></i> Save <!-- Add Icon -->
+                    </button>
+                    <button class="btn btn-danger btn-delete" data-index="{{ loop.index0 }}">
+                        <i class="bi bi-trash"></i> Delete <!-- Add Icon -->
+                    </button>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <div class="mt-4 d-flex justify-content-center">
+        <button id="create-pipeline-btn" class="btn btn-primary">Create the Pipeline</button> <!-- Unique ID -->
+    </div>
+</div>
+
+<script>
+
+function triggerPipeline() {
+    $.ajax({
+        url: "{{ url_for('trigger_pipeline') }}",
+        method: "POST",
+        success: function(response) {
+            if (response && response.status === 'success') {
+                alert(response.message); // Successful alert
+            } else {
+                alert("Pipeline triggered, but encountered an unexpected response.");
+            }
+        },
+        error: function() {
+            alert("Failed to trigger pipeline."); // General error alert
         }
-    </script>
+    });
+}
+$(document).ready(function() {
+    $("#create-pipeline-btn").click(function() {
+        triggerPipeline(); // Attach event handler
+    });
+    // Toggle edit mode
+    $(".btn-edit").click(function() {
+        var index = $(this).data("index");
+        var listItem = $("#keyword-" + index); // Define `listItem` in scope
+        listItem.find(".keyword-text").hide();
+        listItem.find(".keyword-edit").show();
+        listItem.find(".btn-edit").hide();
+        listItem.find(".btn-save").show();
+    });
+
+    // Save updated keyword with AJAX
+    $(".btn-save").click(function() {
+        var index = $(this).data("index");
+        var listItem = $("#keyword-" + index); // Re-define `listItem`
+        var newKeyword = listItem.find(".keyword-edit").val();
+
+        $.ajax({
+            url: "/edit_keyword/" + index,
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ new_keyword: newKeyword }),
+            success: function(response) {
+                if (response.status === 'success') {
+                    listItem.find(".keyword-text").text(newKeyword).show();
+                    listItem.find(".keyword-edit").hide();
+                    listItem.find(".btn-edit").show();
+                    listItem.find(".btn-save").hide();
+                }
+            },
+            error: function() {
+                console.error("Error updating keyword");
+            }
+        });
+    });
+
+    // Delete keyword with AJAX
+    $(".btn-delete").click(function() {
+        var index = $(this).data("index");
+        var listItem = $("#keyword-" + index);
+
+        $.ajax({
+            url: "/delete_keyword/" + index,
+            method: "POST",
+            success: function(response) {
+                if (response.status === 'success') {
+                    listItem.remove(); // Remove the list item
+                }
+            },
+            error: function() {
+                console.error("Failed to delete keyword");
+            }
+        });
+    });
+
+    // Create the Pipeline
+    $(".btn-pipeline").click(function() {
+        $.ajax({
+            url: "/trigger_pipeline",
+            method: "POST",
+            success: function(response) {
+                if (response.status === 'success') {
+                    alert("Pipeline triggered successfully.");
+                }
+            },
+            error: function() {
+                console.error("Failed to trigger pipeline.");
+            }
+        });
+    });
+   
+    
+
+});
+</script>
 </body>
 </html>

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: user-app-deployment
 spec:
-  replicas: 2  # Number of replicas
+  replicas: 1  # Number of replicas
   selector:
     matchLabels:
       app: user-app
@@ -18,6 +18,13 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 5000  # The port your app runs on
+        volumeMounts:
+          - name: pv-storage
+            mountPath: /mnt/gcs  
+      volumes:
+      - name: pv-storage
+        persistentVolumeClaim:
+          claimName: bert-fine-tuning-pipeline-mvlnn-mypvc
         env:
           - name: SECRET_KEY
             valueFrom:
