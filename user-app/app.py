@@ -32,7 +32,7 @@ def upload_to_gcs_and_pv(storage_client,bucket_name, source_file_name, destinati
     # Write to PV
     #pv_path = os.path.join(pv_mount_path, destination_blob_name)
     #shutil.copy(source_file_name, pv_path)
-    print(f"File {source_file_name} copied to PV at {pv_path}.")
+    #print(f"File {source_file_name} copied to PV at {pv_path}.")
 
 
 
