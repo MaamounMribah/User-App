@@ -22,6 +22,18 @@ source_file_name = 'keywords.json'
 destination_blob_name = 'keywords.json'
 pv_mount_path='/mnt/gcs'
 
+
+file_name = 'users.txt'
+
+
+# Reference the specified bucket and file (blob)
+bucket = storage_client.bucket(bucket_name)
+blob = bucket.blob(file_name)
+
+# Download the file locally
+local_file_name = 'users.txt'
+blob.download_to_filename(local_file_name)
+
 def get_user_credentials():
     """Read user credentials from the text file."""
     users = {}
