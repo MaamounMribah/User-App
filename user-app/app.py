@@ -1,5 +1,5 @@
 # Flask app with adjustments
-from flask import Flask, render_template, request, session, jsonify, redirect, url_for
+from flask import Flask, render_template, request, session, jsonify, redirect, url_for, flash
 from urllib.parse import unquote, quote
 from google.cloud import storage
 from werkzeug.utils import secure_filename
@@ -7,6 +7,8 @@ from datetime import timedelta
 import requests
 import os
 import json
+
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
@@ -19,6 +21,36 @@ bucket_name = 'my-bucket-int-infra-training-gcp'
 source_file_name = 'keywords.json'
 destination_blob_name = 'keywords.json'
 pv_mount_path='/mnt/gcs'
+
+def get_user_credentials():
+    """Read user credentials from the text file."""
+    users = {}
+    with open("users.txt", "r") as f:
+        for line in f:
+            username, password = line.strip().split(":")
+            users[username] = password
+    return users
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        users = get_user_credentials()
+        if username in users and users[username] == password:
+            session['authenticated'] = True
+            flash("Login successful!", "success")
+            return redirect(url_for('show_keywords'))  # Redirect to your existing route
+        else:
+            flash("Invalid username or password. Please try again.", "error")
+
+    return render_template("login.html")
+
+@app.before_request
+def require_login():
+    if 'authenticated' not in session and request.endpoint not in ['login', 'show_keywords']:
+        return redirect(url_for('login'))
 
 def upload_to_gcs_and_pv(storage_client,bucket_name, source_file_name, destination_blob_name, pv_mount_path):
     """Uploads a file to the bucket and writes it to Persistent Volume."""
@@ -38,7 +70,11 @@ def upload_to_gcs_and_pv(storage_client,bucket_name, source_file_name, destinati
 
 @app.route('/', methods=['GET'])
 def show_keywords():
-    return render_template('search_form.html', keywords=session.get('keywords', []))
+    if 'authenticated' in session:
+        return render_template('search_form.html', keywords=session.get('keywords', []))
+    return redirect(url_for('login'))
+
+    
 
 @app.route('/add_keyword', methods=['POST'])
 def add_keyword():
